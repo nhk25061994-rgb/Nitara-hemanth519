@@ -1,0 +1,42 @@
+# ── UAT environment (Vmbr-40 UAT cluster) ────────────────────
+# Promoted manually after QA sign-off on Test
+# HPA enabled — UAT mirrors production behaviour
+replicas: 2
+appEnv: uat
+
+image:
+  repository: registry.nitara.internal/nitara-app
+  tag: "main-abc1234-1"          # ← copy tag from test-values.yaml
+
+ingress:
+  host: app.uat.nitara.internal
+
+db:
+  host: mssql.nitara-uat.svc.cluster.local
+  name: nitara_uat
+  user: sa
+  password: UatPassword123
+
+minio:
+  host:      minio.nitara-uat.svc.cluster.local
+  port:      "9000"
+  bucket:    nitara-uat-uploads
+  accessKey: minioadmin
+  secretKey: minioadmin
+
+kafka:
+  brokers: "kafka.nitara-uat.svc.cluster.local:9092"
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  cpuThreshold: 70

@@ -1,0 +1,38 @@
+# ── Test environment (Vmbr-30 Test cluster) ──────────────────
+# Promoted manually from DEV after developer testing
+replicas: 1
+appEnv: test
+
+image:
+  repository: registry.nitara.internal/nitara-app
+  tag: "main-abc1234-1"          # ← copy tag from dev-values.yaml
+
+ingress:
+  host: app.test.nitara.internal
+
+db:
+  host: mssql.nitara-test.svc.cluster.local
+  name: nitara_test
+  user: sa
+  password: TestPassword123
+
+minio:
+  host:      minio.nitara-test.svc.cluster.local
+  port:      "9000"
+  bucket:    nitara-test-uploads
+  accessKey: minioadmin
+  secretKey: minioadmin
+
+kafka:
+  brokers: "kafka.nitara-test.svc.cluster.local:9092"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+hpa:
+  enabled: false

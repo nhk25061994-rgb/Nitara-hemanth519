@@ -1,0 +1,39 @@
+replicas: 1
+appEnv: local
+
+image:
+  repository: registry.nitara.internal/nitara-app
+  tag: latest
+
+ingress:
+  host: app.local.nitara.internal
+
+db:
+  host: localhost
+  name: nitara
+  user: sa
+  password: changeme
+
+minio:
+  host:      localhost
+  port:      "9000"
+  bucket:    nitara-uploads
+  accessKey: minioadmin
+  secretKey: minioadmin
+
+kafka:
+  brokers: "localhost:9092"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  cpuThreshold: 70

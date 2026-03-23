@@ -1,0 +1,95 @@
+# ─────────────────────────────────────────────────────────────
+#  Middleware ExternalName services — DEV / Test (Vmbr-30 MZ)
+#
+#  These let pods inside the DEV and Test clusters reach the
+#  bare-metal MZ VMs using stable Kubernetes DNS names.
+#
+#  e.g.  mssql.nitara-dev.svc.cluster.local  → mssql-main.mz-dev.nitara.internal
+#
+#  Apply to BOTH namespaces:
+#    kubectl apply -f middleware/mz-dev/services.yaml -n nitara-dev
+#    kubectl apply -f middleware/mz-dev/services.yaml -n nitara-test
+# ─────────────────────────────────────────────────────────────
+
+# MS-SQL Server (Main) — CPU-4 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql
+spec:
+  type: ExternalName
+  externalName: mssql-main.mz-dev.nitara.internal
+  ports:
+  - port: 1433
+
+---
+# Redis Cluster — 3 nodes, CPU-6 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  type: ExternalName
+  externalName: redis.mz-dev.nitara.internal
+  ports:
+  - port: 6379
+
+---
+# MongoDB Cluster — 3 nodes, CPU-6 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  type: ExternalName
+  externalName: mongo.mz-dev.nitara.internal
+  ports:
+  - port: 27017
+
+---
+# PostgreSQL — CPU-4 MEM-8
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  type: ExternalName
+  externalName: postgres.mz-dev.nitara.internal
+  ports:
+  - port: 5432
+
+---
+# Kafka / Elasticsearch — CPU-4 MEM-8
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+spec:
+  type: ExternalName
+  externalName: kafka.mz-dev.nitara.internal
+  ports:
+  - port: 9092
+
+---
+# MinIO S3 — Vmbr-35, CPU-4 MEM-6
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  type: ExternalName
+  externalName: minio.vmbr35.nitara.internal
+  ports:
+  - port: 9000
+
+---
+# WebRTC server — CPU-6 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: webrtc
+spec:
+  type: ExternalName
+  externalName: webrtc.mz-dev.nitara.internal
+  ports:
+  - port: 3478

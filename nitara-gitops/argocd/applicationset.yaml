@@ -1,0 +1,78 @@
+# ─────────────────────────────────────────────────────────────
+#  ArgoCD ApplicationSet — Nitara
+#  One definition manages all 4 environments.
+#
+#  Apply:  kubectl apply -f argocd/applicationset.yaml -n argocd
+# ─────────────────────────────────────────────────────────────
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nitara-apps
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+
+      # ── DEV ─────────────────────────────────────────
+      - env:        dev
+        cluster:    https://dev-api.nitara.internal:6443
+        namespace:  nitara-dev
+        valuesFile: values/dev-values.yaml
+        autoSync:   "true"
+
+      # ── TEST ────────────────────────────────────────
+      - env:        test
+        cluster:    https://test-api.nitara.internal:6443
+        namespace:  nitara-test
+        valuesFile: values/test-values.yaml
+        autoSync:   "true"
+
+      # ── UAT ─────────────────────────────────────────
+      - env:        uat
+        cluster:    https://uat-api.nitara.internal:6443
+        namespace:  nitara-uat
+        valuesFile: values/uat-values.yaml
+        autoSync:   "false"    # manual promote
+
+      # ── STG ─────────────────────────────────────────
+      - env:        stg
+        cluster:    https://stg-api.nitara.internal:6443
+        namespace:  nitara-stg
+        valuesFile: values/stg-values.yaml
+        autoSync:   "false"    # manual promote
+
+  template:
+    metadata:
+      name: "nitara-app-{{env}}"
+      namespace: argocd
+    spec:
+      project: nitara
+
+      source:
+        repoURL:        https://github.com/nitara/nitara-gitops.git
+        targetRevision: HEAD
+        path:           charts/nitara-app
+        helm:
+          valueFiles:
+          - "../../{{valuesFile}}"
+
+      destination:
+        server:    "{{cluster}}"
+        namespace: "{{namespace}}"
+
+      syncPolicy:
+        automated:
+          prune:     true    # remove resources deleted from Git
+          selfHeal:  true    # revert manual kubectl changes
+        syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - ApplyOutOfSyncOnly=true
+
+      # Don't fight HPA — ignore replica count drift
+      ignoreDifferences:
+      - group: apps
+        kind: Deployment
+        jsonPointers:
+        - /spec/replicas

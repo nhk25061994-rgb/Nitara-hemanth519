@@ -1,0 +1,68 @@
+# ─────────────────────────────────────────────────────────────
+#  ArgoCD AppProject — nitara
+#  Scopes allowed repos, clusters, namespaces, and team RBAC.
+#
+#  Apply:  kubectl apply -f argocd/projects.yaml -n argocd
+# ─────────────────────────────────────────────────────────────
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nitara
+  namespace: argocd
+spec:
+  description: Nitara platform — DEV / Test / UAT / STG
+
+  # Only this repo is trusted as a source
+  sourceRepos:
+  - https://github.com/nitara/nitara-gitops.git
+
+  # Only these cluster + namespace combos are allowed
+  destinations:
+  - server: https://dev-api.nitara.internal:6443
+    namespace: nitara-dev
+  - server: https://test-api.nitara.internal:6443
+    namespace: nitara-test
+  - server: https://uat-api.nitara.internal:6443
+    namespace: nitara-uat
+  - server: https://stg-api.nitara.internal:6443
+    namespace: nitara-stg
+
+  # Cluster-level resources this project can manage
+  clusterResourceWhitelist:
+  - group: ""
+    kind: Namespace
+
+  # Namespace-level resources
+  namespaceResourceWhitelist:
+  - group: apps
+    kind: Deployment
+  - group: ""
+    kind: Service
+  - group: ""
+    kind: ConfigMap
+  - group: ""
+    kind: Secret
+  - group: networking.k8s.io
+    kind: Ingress
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+
+  # Team RBAC
+  roles:
+  # Dev team — can sync DEV and Test only
+  - name: dev-team
+    description: Developers — DEV and Test environments
+    policies:
+    - p, proj:nitara:dev-team, applications, sync, nitara/nitara-app-dev,  allow
+    - p, proj:nitara:dev-team, applications, sync, nitara/nitara-app-test, allow
+    - p, proj:nitara:dev-team, applications, get,  nitara/*,               allow
+    groups:
+    - nitara-developers
+
+  # Ops team — full access to all environments
+  - name: ops-team
+    description: Ops — all environments
+    policies:
+    - p, proj:nitara:ops-team, applications, *, nitara/*, allow
+    groups:
+    - nitara-ops

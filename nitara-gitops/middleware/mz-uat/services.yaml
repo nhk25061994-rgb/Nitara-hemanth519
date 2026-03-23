@@ -1,0 +1,92 @@
+# ─────────────────────────────────────────────────────────────
+#  Middleware ExternalName services — UAT / STG (Vmbr-40 MZ)
+#
+#  Points to Vmbr-40 MZ VMs and MinIO Vmbr-55.
+#
+#  Apply to BOTH namespaces:
+#    kubectl apply -f middleware/mz-uat/services.yaml -n nitara-uat
+#    kubectl apply -f middleware/mz-uat/services.yaml -n nitara-stg
+# ─────────────────────────────────────────────────────────────
+
+# MS-SQL Server (Main + Replica) — CPU-4 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql
+spec:
+  type: ExternalName
+  externalName: mssql-main.mz-uat.nitara.internal
+  ports:
+  - port: 1433
+
+---
+# Redis Cluster — 3 nodes, CPU-6 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  type: ExternalName
+  externalName: redis.mz-uat.nitara.internal
+  ports:
+  - port: 6379
+
+---
+# MongoDB Cluster — 3 nodes, CPU-6 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  type: ExternalName
+  externalName: mongo.mz-uat.nitara.internal
+  ports:
+  - port: 27017
+
+---
+# PostgreSQL — CPU-4 MEM-8
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  type: ExternalName
+  externalName: postgres.mz-uat.nitara.internal
+  ports:
+  - port: 5432
+
+---
+# Kafka / Elasticsearch — CPU-4 MEM-8
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+spec:
+  type: ExternalName
+  externalName: kafka.mz-uat.nitara.internal
+  ports:
+  - port: 9092
+
+---
+# MinIO S3 — Vmbr-55, CPU-16 MEM-32 (Nitara Lab node)
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  type: ExternalName
+  externalName: minio.vmbr55.nitara.internal
+  ports:
+  - port: 9000
+
+---
+# WebRTC server — CPU-6 MEM-12
+apiVersion: v1
+kind: Service
+metadata:
+  name: webrtc
+spec:
+  type: ExternalName
+  externalName: webrtc.mz-uat.nitara.internal
+  ports:
+  - port: 3478

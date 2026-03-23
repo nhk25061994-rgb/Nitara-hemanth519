@@ -1,0 +1,38 @@
+# ── DEV environment (Vmbr-30 DEV cluster) ────────────────────
+# Jenkins auto-updates image.tag on every main branch build
+replicas: 1
+appEnv: dev
+
+image:
+  repository: registry.nitara.internal/nitara-app
+  tag: "main-abc1234-1"          # ← Jenkins updates this line
+
+ingress:
+  host: app.dev.nitara.internal
+
+db:
+  host: mssql.nitara-dev.svc.cluster.local
+  name: nitara_dev
+  user: sa
+  password: DevPassword123
+
+minio:
+  host:      minio.nitara-dev.svc.cluster.local
+  port:      "9000"
+  bucket:    nitara-dev-uploads
+  accessKey: minioadmin
+  secretKey: minioadmin
+
+kafka:
+  brokers: "kafka.nitara-dev.svc.cluster.local:9092"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+hpa:
+  enabled: false

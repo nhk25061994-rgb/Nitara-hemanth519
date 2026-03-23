@@ -1,0 +1,42 @@
+# ── STG environment (Vmbr-40 STG cluster) ────────────────────
+# Promoted manually after UAT sign-off by ops team
+# Highest resources — mirrors production exactly
+replicas: 3
+appEnv: stg
+
+image:
+  repository: registry.nitara.internal/nitara-app
+  tag: "main-abc1234-1"          # ← copy tag from uat-values.yaml
+
+ingress:
+  host: app.stg.nitara.internal
+
+db:
+  host: mssql.nitara-stg.svc.cluster.local
+  name: nitara_stg
+  user: sa
+  password: StgPassword123
+
+minio:
+  host:      minio.nitara-stg.svc.cluster.local
+  port:      "9000"
+  bucket:    nitara-stg-uploads
+  accessKey: minioadmin
+  secretKey: minioadmin
+
+kafka:
+  brokers: "kafka.nitara-stg.svc.cluster.local:9092"
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "2000m"
+    memory: "2Gi"
+
+hpa:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  cpuThreshold: 60

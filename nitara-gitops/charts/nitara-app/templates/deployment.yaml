@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+    env: {{ .Values.appEnv }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        env: {{ .Values.appEnv }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+
+        # All config injected via env vars — app reads process.env.*
+        env:
+        - name: APP_ENV
+          value: {{ .Values.appEnv | quote }}
+        - name: APP_VERSION
+          value: {{ .Values.image.tag | quote }}
+        - name: PORT
+          value: "8080"
+
+        # DB credentials from Kubernetes Secret
+        - name: DB_HOST
+          value: {{ .Values.db.host | quote }}
+        - name: DB_NAME
+          value: {{ .Values.db.name | quote }}
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: nitara-db-secret
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: nitara-db-secret
+              key: password
+
+        # MinIO config
+        - name: MINIO_HOST
+          value: {{ .Values.minio.host | quote }}
+        - name: MINIO_PORT
+          value: {{ .Values.minio.port | quote }}
+        - name: MINIO_BUCKET
+          value: {{ .Values.minio.bucket | quote }}
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nitara-minio-secret
+              key: accessKey
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nitara-minio-secret
+              key: secretKey
+
+        # Kafka brokers from MZ zone
+        - name: KAFKA_BROKERS
+          value: {{ .Values.kafka.brokers | quote }}
+
+        # Kubernetes liveness — is the process alive?
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          failureThreshold: 3
+
+        # Kubernetes readiness — is DB connected and ready?
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+
+        resources:
+          requests:
+            cpu:    {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu:    {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
